@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:root@localhost:3306/gis-kawin"
+}
+
+model laporan_status_gizi_balita {
+  id                                Int       @id @default(autoincrement())
+  kecamatan                         String?   @db.VarChar(100)
+  puskesmas                         String?   @db.VarChar(100)
+  jumlah_balita_ditimbang           Int?
+  bb_u_kurang                       Int?
+  jumlah_balita_diukur_tinggi_badan Int?
+  tb_u_pendek                       Int?
+  jumlah_balita_diukur_bb_tb        Int?
+  bb_tb_gizi_kurang                 Int?
+  bb_tb_gizi_buruk                  Int?
+  jumlah_gizi_kurang                Int?
+  persen_gizi_kurang                Decimal?  @db.Decimal(5, 2)
+  jumlah_gizi_buruk                 Int?
+  persen_gizi_buruk                 Decimal?  @db.Decimal(5, 2)
+  laporan_tanggal                   DateTime? @db.Date
+}
+
+model user {
+  id_user  Int    @id @default(autoincrement())
+  username String @db.VarChar(32)
+  password String @db.VarChar(32)
+}
