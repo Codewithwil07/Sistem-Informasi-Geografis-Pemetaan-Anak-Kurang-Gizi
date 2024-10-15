@@ -1,20 +1,76 @@
 import express from 'express';
+import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
-
 const app = express();
-const prisma = new PrismaClient();
-const PORT = 3000;
+import session from 'express-session';
+import dotenv from 'dotenv';
 
+dotenv.config();
+const SECRET_KEY = process.env.SECRET_KEY;
+
+const corsOption = {
+  origin: 'http://localhost:5173',
+  allowedHeaders: 'Content-Type, Authorization',
+  methods: 'GET, POST, PUT, DELETE',
+  credentials: true,
+};
+
+app.use(
+  session({
+    name: 'session',
+    secret: SECRET_KEY,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      maxAge: 1000 * 60 * 60,
+      httpOnly: true,
+      secure: false,
+      sameSite: 'none',
+    },
+  })
+);
+
+app.use(cors(corsOption));
+
+const prisma = new PrismaClient();
 app.use(express.json());
 
+const PORT = 3000;
+app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+
+const checkAuth = (req, res, next) => {
+  if (req.session.user) {
+    return next();
+  }
+  return res.status(401).send({ msg: 'Not authenticated' });
+};
+
+app.get('/api/checkAuth', (req, res) => {
+  const user = req.session.user;
+  try {
+    if (user) {
+      return res.status(200).send({ msg: 'Authenticated', user: user });
+    }
+    return res.status(401).send({ msg: 'Not authenticated' });
+  } catch (error) {
+    res.status(500).send({ msg: 'Internal Server Error' });
+  }
+});
+
 app.post('/api/login', async (req, res) => {
-  const { username } = req.body;
+  const { username, password } = req.body;
   try {
     const data = await prisma.user.findFirst({
-      where: { username: username },
+      where: { username: username, password: password },
     });
-    if (!data) return res.status(404).send({ msg: 'User not found' });
 
+    if (!data) return res.status(401).send({ msg: 'Unauthorized' });
+
+    req.session.regenerate((err) => {
+      if (err) res.status(500).send({ msg: 'Invalid to regenerate session' });
+    });
+
+    req.session.user = { username: 'admin', password: 'admin' };
     res.status(200).send({ msg: 'Login successful' });
   } catch (error) {
     console.error(error.message);
@@ -22,8 +78,18 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+app.post('/api/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).send({ msg: 'Logout failed' });
+    }
+  });
+  res.clearCookie('session');
+  res.status(200).send({ msg: 'Logout successful' });
+});
+
 // **CREATE** - Menambahkan data laporan gizi
-app.post('/api/data/laporan-gizi', async (req, res) => {
+app.post('/api/data/laporan-gizi', checkAuth, async (req, res) => {
   try {
     const {
       kecamatan,
@@ -70,7 +136,7 @@ app.post('/api/data/laporan-gizi', async (req, res) => {
 });
 
 // **READ** - Mengambil semua data laporan gizi
-app.get('/api/data/laporan-gizi', async (req, res) => {
+app.get('/api/data/laporan-gizi', checkAuth, async (req, res) => {
   try {
     const data = await prisma.laporan_status_gizi_balita.findMany();
     res.status(200).json({ data: data });
@@ -80,7 +146,7 @@ app.get('/api/data/laporan-gizi', async (req, res) => {
   }
 });
 
-app.get('/api/data/laporan-gizi/id', async (req, res) => {
+app.get('/api/data/laporan-gizi/id', checkAuth, async (req, res) => {
   try {
     const data = await prisma.laporan_status_gizi_balita(req.params.id);
     res.status(200).json({ data: data });
@@ -91,7 +157,7 @@ app.get('/api/data/laporan-gizi/id', async (req, res) => {
 });
 
 // **READ by ID** - Mengambil data laporan gizi berdasarkan ID
-app.get('/api/data/laporan-gizi/:id', async (req, res) => {
+app.get('/api/data/laporan-gizi/:id', checkAuth, async (req, res) => {
   const { id } = req.params;
   try {
     const data = await prisma.laporan_status_gizi_balita.findUnique({
@@ -109,7 +175,7 @@ app.get('/api/data/laporan-gizi/:id', async (req, res) => {
 });
 
 // **UPDATE** - Mengupdate data laporan gizi berdasarkan ID
-app.put('/api/data/laporan-gizi/:id', async (req, res) => {
+app.put('/api/data/laporan-gizi/:id', checkAuth, async (req, res) => {
   const { id } = req.params;
   const {
     kecamatan,
@@ -158,7 +224,7 @@ app.put('/api/data/laporan-gizi/:id', async (req, res) => {
 });
 
 // **DELETE** - Menghapus data laporan gizi berdasarkan ID
-app.delete('/api/data/laporan-gizi/:id', async (req, res) => {
+app.delete('/api/data/laporan-gizi/:id', checkAuth, async (req, res) => {
   const { id } = req.params;
   try {
     const deletedLaporan = await prisma.laporan_status_gizi_balita.delete({
@@ -172,5 +238,3 @@ app.delete('/api/data/laporan-gizi/:id', async (req, res) => {
     res.status(500).json({ message: 'Error deleting data' });
   }
 });
-
-app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));

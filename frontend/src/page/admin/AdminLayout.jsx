@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../../components/Sidebar';
 import { Outlet } from 'react-router-dom';
 
+
 const AdminLayout = () => {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -22,7 +23,7 @@ const AdminLayout = () => {
       <div
         className={` ${
           isOpen ? 'ml-64' : 'ml-20'
-        } p-8 w-full transition-all duration-30 min-h-screen bg-gray-100 py-100`}
+        } p-4 w-full transition-all duration-30 min-h-screen bg-gray-100 py-100`}
       >
         <Outlet />
       </div>

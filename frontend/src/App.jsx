@@ -7,6 +7,8 @@ import AdminLayout from './page/admin/AdminLayout';
 import Dashboard from './page/admin/Dashboard';
 import DataEdit from './page/admin/DataEdit';
 import DataList from './page/admin/DataList';
+import AdminLogin from './page/auth/AdminLogin';
+import PrivateRoute from './page/admin/PrivateRoute';
 
 const router = createBrowserRouter([
   {
@@ -31,8 +33,12 @@ const router = createBrowserRouter([
     ],
   },
   {
+    path: '/auth/login',
+    element: <AdminLogin />,
+  },
+  {
     path: '/admin',
-    element: <AdminLayout />,
+    element: <PrivateRoute />,
     children: [
       {
         path: 'dashboard',

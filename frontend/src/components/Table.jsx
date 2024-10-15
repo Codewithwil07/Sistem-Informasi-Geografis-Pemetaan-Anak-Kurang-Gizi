@@ -54,22 +54,17 @@ const TabelGizi = () => {
   return (
     <div className='container border border-gray-300'>
       <div className='flex w-full justify-between pb-5 flex-row-reverse px-4 py-5'>
-        <Button Bgcolor={'blue'} hoverColor={'blue'}>
-          Tambah data
-        </Button>
-        <h1 className='font-bold text-xl'>Tabel Jumlah Bayi Underweight</h1>
-        <Button Bgcolor={'green'} hoverColor={'green'}>
+        <Button.ButtonPrimary>Tambah data</Button.ButtonPrimary>
+        <h1 className='font-bold text-xl'>
+          Tabel Gizi Balita di Kabupaten Sumenep
+        </h1>
+        <Button.ButtonSuccess>
           Ekspor data
-        </Button>
+        </Button.ButtonSuccess>
       </div>
 
       <table className='min-w-full table-auto border-collapse overflow-x-auto'>
         <thead className='bg-gray-100'>
-          {/* <tr className='border'>
-            <td colSpan={5}>Berat Badan Kurang / Underweight (BB/U)</td>
-            <td colSpan={1}>Berat Badan Kurang / Underweight (BB/U)</td>
-            <td colSpan={1}>Berat Badan Kurang / Underweight (BB/U)</td>
-          </tr> */}
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id} className='border'>
               {headerGroup.headers.map((header) => (
